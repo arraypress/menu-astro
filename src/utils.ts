@@ -59,6 +59,24 @@ export function ariaCurrent(
 }
 
 /**
+ * Whether two links go to the same place — the same path, trailing slash
+ * or not, and the same `#` section. Used to drop a parent's own link from
+ * its drawer group when one of its children already goes there.
+ *
+ * @param a A link's target.
+ * @param b Another link's target.
+ * @returns True when both lead to the same page and section.
+ */
+export function sameTarget(a: string | undefined, b: string | undefined): boolean {
+	if (!a || !b) return false;
+	const split = (href: string) => {
+		const hash = href.includes('#') ? href.slice(href.indexOf('#')) : '';
+		return normalizePath(href) + hash;
+	};
+	return split(a) === split(b);
+}
+
+/**
  * Whether an item, or anything under it, is the current page — so a
  * dropdown's label is marked while you're on one of its pages, and the
  * drawer opens that group.

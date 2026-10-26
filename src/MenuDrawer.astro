@@ -31,8 +31,8 @@
 import './styles/menu.css';
 import MenuGroup from './MenuGroup.astro';
 import MenuLink from './MenuLink.astro';
-import { containsCurrent, format, resolveStrings } from './utils';
-import type { MenuDrawerProps } from './types';
+import { containsCurrent, format, resolveStrings, sameTarget } from './utils';
+import type { MenuDrawerProps, MenuItem } from './types';
 
 const {
 	id = 'menu-drawer',
@@ -47,6 +47,19 @@ const {
 
 const strings = resolveStrings(stringsProp);
 const titleId = `${id}-title`;
+
+/* A parent's own page heads its group as "All {label}" — unless one of its
+ * children already links there ("Storefront" → `/` under "Home" → `/`),
+ * which would put the same page in the group twice. */
+const showParent = (item: MenuItem) =>
+	!!item.href &&
+	!(item.items ?? []).some(
+		(child) => sameTarget(child.href, item.href) || (child.items ?? []).some((grandchild) => sameTarget(grandchild.href, item.href))
+	);
+
+/* The footer only draws when its slot renders something — a conditional
+ * that comes out empty (a site with no social links) leaves no strip. */
+const footer = Astro.slots.has('footer') ? (await Astro.slots.render('footer')).trim() : '';
 /** A group's label as an id fragment, for its column headings: `${id}-${slug}-${index}`. */
 const makeSlug = (label: string) => label.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
 ---
@@ -76,7 +89,7 @@ const makeSlug = (label: string) => label.toLowerCase().replace(/[^\p{L}\p{N}]+/
 								<li>
 									{item.items?.length ? (
 										<MenuGroup label={item.label} open={containsCurrent(item, currentPath)}>
-											{item.href && (
+											{showParent(item) && (
 												<li>
 													<MenuLink class="menu-drawer__link" item={item} currentPath={currentPath} externalNote={strings.external}>
 														{format(strings.overview, item.label)}
@@ -114,13 +127,7 @@ const makeSlug = (label: string) => label.toLowerCase().replace(/[^\p{L}\p{N}]+/
 			<slot />
 		</div>
 
-		{
-			Astro.slots.has('footer') && (
-				<div class="menu-drawer__foot">
-					<slot name="footer" />
-				</div>
-			)
-		}
+		{footer && <div class="menu-drawer__foot" set:html={footer} />}
 	</div>
 </dialog>
 

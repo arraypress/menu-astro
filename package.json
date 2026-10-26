@@ -1,6 +1,6 @@
 {
   "name": "@arraypress/menu-astro",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Accessible Astro site navigation — a nav bar with dropdowns and mega panels, and a mobile drawer on native <dialog>. Disclosure pattern, WCAG 2.2 AA, every browser from 2024.",
   "type": "module",
   "files": [

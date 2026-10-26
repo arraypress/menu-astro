@@ -1,0 +1,82 @@
+---
+/**
+ * MenuPanelLinks.astro
+ * --------------------
+ *
+ * The links in a dropdown's panel, drawn from `items`: one list, or — when
+ * children hold `items` of their own — headed columns, each list named by
+ * its heading, any plain links together in a last column with no heading.
+ *
+ * Internal: `<MenuDropdown items>` renders it, on its own or beside the
+ * `aside` slot.
+ */
+import MenuLink from './MenuLink.astro';
+import type { MenuItem, MenuStrings } from './types';
+
+interface Props {
+	items: MenuItem[];
+	/** The panel's id, which the column headings' ids start from. */
+	id: string;
+	currentPath: string;
+	strings: Required<MenuStrings>;
+}
+
+const { items, id, currentPath, strings } = Astro.props;
+
+const columns = items.filter((item) => item.items?.length);
+const loose = items.filter((item) => !item.items?.length);
+const headingId = (index: number) => `${id}-col-${index}`;
+---
+
+{
+	columns.length > 0 ? (
+		<div class="menu-dropdown__columns">
+			{columns.map((column, index) => (
+				<div class="menu-dropdown__column">
+					{column.href ? (
+						<MenuLink class="menu-dropdown__heading" item={column} currentPath={currentPath} externalNote={strings.external}>
+							<span id={headingId(index)}>{column.label}</span>
+						</MenuLink>
+					) : (
+						<p class="menu-dropdown__heading" id={headingId(index)}>{column.label}</p>
+					)}
+					<ul class="menu-dropdown__list" aria-labelledby={headingId(index)}>
+						{column.items!.map((item) => (
+							<li>
+								<MenuLink class="menu-dropdown__item" item={item} currentPath={currentPath} externalNote={strings.external}>
+									<span class="menu-dropdown__label">{item.label}</span>
+									{item.description && <span class="menu-dropdown__desc">{item.description}</span>}
+								</MenuLink>
+							</li>
+						))}
+					</ul>
+				</div>
+			))}
+			{loose.length > 0 && (
+				<div class="menu-dropdown__column">
+					<ul class="menu-dropdown__list">
+						{loose.map((item) => (
+							<li>
+								<MenuLink class="menu-dropdown__item" item={item} currentPath={currentPath} externalNote={strings.external}>
+									<span class="menu-dropdown__label">{item.label}</span>
+									{item.description && <span class="menu-dropdown__desc">{item.description}</span>}
+								</MenuLink>
+							</li>
+						))}
+					</ul>
+				</div>
+			)}
+		</div>
+	) : (
+		<ul class="menu-dropdown__list">
+			{items.map((item) => (
+				<li>
+					<MenuLink class="menu-dropdown__item" item={item} currentPath={currentPath} externalNote={strings.external}>
+						<span class="menu-dropdown__label">{item.label}</span>
+						{item.description && <span class="menu-dropdown__desc">{item.description}</span>}
+					</MenuLink>
+				</li>
+			))}
+		</ul>
+	)
+}

@@ -35,6 +35,14 @@ export interface MenuItem {
 	items?: MenuItem[];
 	/** `'wide'` spans the panel across the header: a mega panel. Default `'default'`. */
 	size?: MenuPanelSize;
+	/**
+	 * The name of a `<MenuBar>` slot whose content sits beside this
+	 * dropdown's links — a featured release next to a generated list:
+	 * `{ label: 'Products', items, aside: 'latest' }` with
+	 * `<a slot="latest" …>` inside `<MenuBar>`. The bar only; the drawer
+	 * keeps to links.
+	 */
+	aside?: string;
 	/** Opens in a new tab, with `rel="noopener"`. */
 	external?: boolean;
 	/**

@@ -212,6 +212,14 @@
 		translate: 0 0;
 	}
 
+	/* With an aside: the links, and the aside's own width beside them. */
+	:where(.menu-dropdown__body) {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 1rem;
+		align-items: start;
+	}
+
 	:where(.menu-dropdown__list) {
 		display: grid;
 		gap: 0.125rem;

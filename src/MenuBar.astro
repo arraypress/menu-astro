@@ -6,7 +6,8 @@
  * The site's main navigation as a row: a named `<nav>` landmark holding a
  * list, with a dropdown wherever an item has children. Give it `items` and
  * it draws everything; or fill the default slot with your own `<li>`s,
- * `<MenuDropdown>`s inside them.
+ * `<MenuDropdown>`s inside them. An item with `aside: 'name'` gets the
+ * named slot's content beside its dropdown's links.
  *
  * The bar shows at every width; hide it where the drawer takes over with
  * your own CSS (`@media (max-width: 767px) { .menu-bar { display: none } }`),
@@ -43,6 +44,14 @@ const {
 } = Astro.props as MenuBarProps;
 
 const strings = resolveStrings(stringsProp);
+
+/* Each dropdown's `aside`, rendered from the slot its item names. */
+const asides = new Map<string, string>();
+for (const item of items ?? []) {
+	if (item.aside && !asides.has(item.aside) && Astro.slots.has(item.aside)) {
+		asides.set(item.aside, await Astro.slots.render(item.aside));
+	}
+}
 ---
 
 <nav class:list={['menu-bar', className]} aria-label={label}>
@@ -63,7 +72,9 @@ const strings = resolveStrings(stringsProp);
 								currentPath={currentPath}
 								hover={hover}
 								strings={strings}
-							/>
+							>
+								{item.aside && asides.has(item.aside) && <Fragment slot="aside" set:html={asides.get(item.aside)} />}
+							</MenuDropdown>
 						) : (
 							<MenuLink class="menu-bar__link" item={item} currentPath={currentPath} externalNote={strings.external} />
 						)}

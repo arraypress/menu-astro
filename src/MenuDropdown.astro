@@ -20,7 +20,8 @@
  *
  * Fill the panel with `items` — each child a link, or with `size="wide"`,
  * children holding `items` of their own become headed columns — or with
- * your own markup in the default slot.
+ * your own markup in the default slot. With `items`, the `aside` slot sits
+ * beside the links: a featured release or product next to a generated list.
  *
  * @example
  *   ---
@@ -34,9 +35,13 @@
  *   <MenuDropdown label="Resources" size="wide">
  *     <YourMegaPanel />
  *   </MenuDropdown>
+ *
+ *   <MenuDropdown label="Products" href="/products" items={products}>
+ *     <a slot="aside" href="/products/latest">Latest release</a>
+ *   </MenuDropdown>
  */
 import './styles/menu.css';
-import MenuLink from './MenuLink.astro';
+import MenuPanelLinks from './MenuPanelLinks.astro';
 import { ariaCurrent, containsCurrent, format, makeId, resolveStrings } from './utils';
 import type { MenuDropdownProps } from './types';
 
@@ -61,13 +66,10 @@ const labelCurrent = ariaCurrent({ href, current }, currentPath);
 /* A label with no page of its own still shows that you're somewhere in it. */
 const sectionCurrent = !href && (items ?? []).some((item) => containsCurrent(item, currentPath));
 
-/* A wide panel lays children holding links out as headed columns; any plain
- * links among them go together in a last column with no heading. */
-const columns = (items ?? []).filter((item) => item.items?.length);
-const loose = (items ?? []).filter((item) => !item.items?.length);
-const asColumns = columns.length > 0;
-
-const headingId = (index: number) => `${id}-col-${index}`;
+/* Content to show beside the generated links — a featured card, say.
+ * Rendered first and checked: a slot passed through a condition that came
+ * out false (as <MenuBar> does) still counts as given, but renders nothing. */
+const aside = items && Astro.slots.has('aside') ? (await Astro.slots.render('aside')).trim() : '';
 ---
 
 <div
@@ -111,55 +113,15 @@ const headingId = (index: number) => `${id}-col-${index}`;
 		{
 			!items ? (
 				<slot />
-			) : asColumns ? (
-				<div class="menu-dropdown__columns">
-					{columns.map((column, index) => (
-						<div class="menu-dropdown__column">
-							{column.href ? (
-								<MenuLink class="menu-dropdown__heading" item={column} currentPath={currentPath} externalNote={strings.external}>
-									<span id={headingId(index)}>{column.label}</span>
-								</MenuLink>
-							) : (
-								<p class="menu-dropdown__heading" id={headingId(index)}>{column.label}</p>
-							)}
-							<ul class="menu-dropdown__list" aria-labelledby={headingId(index)}>
-								{column.items!.map((item) => (
-									<li>
-										<MenuLink class="menu-dropdown__item" item={item} currentPath={currentPath} externalNote={strings.external}>
-											<span class="menu-dropdown__label">{item.label}</span>
-											{item.description && <span class="menu-dropdown__desc">{item.description}</span>}
-										</MenuLink>
-									</li>
-								))}
-							</ul>
-						</div>
-					))}
-					{loose.length > 0 && (
-						<div class="menu-dropdown__column">
-							<ul class="menu-dropdown__list">
-								{loose.map((item) => (
-									<li>
-										<MenuLink class="menu-dropdown__item" item={item} currentPath={currentPath} externalNote={strings.external}>
-											<span class="menu-dropdown__label">{item.label}</span>
-											{item.description && <span class="menu-dropdown__desc">{item.description}</span>}
-										</MenuLink>
-									</li>
-								))}
-							</ul>
-						</div>
-					)}
+			) : aside ? (
+				<div class="menu-dropdown__body">
+					<div class="menu-dropdown__main">
+						<MenuPanelLinks items={items} id={id} currentPath={currentPath} strings={strings} />
+					</div>
+					<div class="menu-dropdown__aside" set:html={aside} />
 				</div>
 			) : (
-				<ul class="menu-dropdown__list">
-					{items.map((item) => (
-						<li>
-							<MenuLink class="menu-dropdown__item" item={item} currentPath={currentPath} externalNote={strings.external}>
-								<span class="menu-dropdown__label">{item.label}</span>
-								{item.description && <span class="menu-dropdown__desc">{item.description}</span>}
-							</MenuLink>
-						</li>
-					))}
-				</ul>
+				<MenuPanelLinks items={items} id={id} currentPath={currentPath} strings={strings} />
 			)
 		}
 	</div>

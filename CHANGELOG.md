@@ -2,7 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.0] — Unreleased
+## [1.1.0] — 2026-10-27
+
+### Added
+
+- `aside` on a `MenuItem` names a `<MenuBar>` slot whose content sits beside
+  that dropdown's links — a featured release next to a generated list, with
+  no hand-written panel. On `<MenuDropdown items>` the slot is `aside`.
+- `sameTarget()` in the utilities: whether two links go to the same page and
+  section.
+
+### Fixed
+
+- `<MenuDrawer>` no longer draws an empty footer strip when the `footer`
+  slot renders nothing — a conditional that comes out empty still counted
+  as given.
+- A drawer group leaves out its parent's "All {label}" link when one of its
+  children already goes to the same place ("Storefront" → `/` under
+  "Home" → `/`), so no page shows twice.
+
+## [1.0.0] — 2026-10-26
 
 ### Initial Release
 

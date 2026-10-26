@@ -81,6 +81,21 @@ describe('<MenuBar>', () => {
 		expect(html).toMatch(/data-menu-dropdown data-hover data-size="default" data-align="center"/);
 	});
 
+	it("puts the slot an item names beside that item's links, and nowhere else", async () => {
+		const items = [
+			{ label: 'Products', items: [{ label: 'All', href: '/products' }], aside: 'latest' },
+			{ label: 'Docs', items: [{ label: 'Guide', href: '/docs' }] },
+		];
+		const html = await render(MenuBar, { items }, undefined, { latest: '<a href="/products/new">New release</a>' });
+		expect((html.match(/menu-dropdown__aside/g) ?? []).length).toBe(1);
+		expect(html).toContain('<div class="menu-dropdown__aside"><a href="/products/new">New release</a></div>');
+	});
+
+	it("draws no aside when the named slot isn't given", async () => {
+		const html = await render(MenuBar, { items: [{ label: 'Products', items: [{ label: 'All', href: '/products' }], aside: 'latest' }] });
+		expect(html).not.toContain('menu-dropdown__aside');
+	});
+
 	it('turns items with children into dropdowns', async () => {
 		const html = await render(MenuBar, { items: nav });
 		expect((html.match(/data-menu-dropdown/g) ?? []).length).toBe(2);
@@ -136,6 +151,17 @@ describe('<MenuDropdown>', () => {
 		expect(html).toMatch(/class="menu-dropdown__trigger"[^>]*data-current/);
 	});
 
+	it('sets the aside slot beside generated links', async () => {
+		const html = await render(MenuDropdown, { label: 'Products', items: [{ label: 'All', href: '/products' }] }, undefined, { aside: '<a href="/products/new">New</a>' });
+		expect(html).toMatch(/<div class="menu-dropdown__body"><div class="menu-dropdown__main"><ul class="menu-dropdown__list">/);
+		expect(html).toContain('<div class="menu-dropdown__aside"><a href="/products/new">New</a></div>');
+	});
+
+	it('draws no wrapper without an aside', async () => {
+		const html = await render(MenuDropdown, { label: 'Products', items: [{ label: 'All', href: '/products' }] });
+		expect(html).not.toContain('menu-dropdown__body');
+	});
+
 	it('takes custom panel content from the default slot', async () => {
 		const html = await render(MenuDropdown, { label: 'Mega', size: 'wide' }, undefined, { default: '<p>Anything</p>' });
 		expect(html).toContain('<p>Anything</p>');
@@ -181,6 +207,13 @@ describe('<MenuDrawer>', () => {
 		expect(html).toMatch(/<ul class="menu-group__items">\s*<li><a class="menu-drawer__link" href="\/plugins">All Plugins<\/a>/);
 	});
 
+	it("leaves the parent's link out when a child already goes there", async () => {
+		const items = [{ label: 'Home', href: '/', items: [{ label: 'Storefront', href: '/' }, { label: 'Minimal', href: '/minimal' }] }];
+		const html = await render(MenuDrawer, { items });
+		expect(html).not.toContain('All Home');
+		expect((html.match(/href="\/"/g) ?? []).length).toBe(1);
+	});
+
 	it('opens the group holding the current page', async () => {
 		const html = await render(MenuDrawer, { items: nav }, 'https://example.com/plugins/shop/');
 		expect(html).toMatch(/<details class="menu-group" open>\s*<summary class="menu-group__summary"><span>Plugins/);
@@ -193,8 +226,9 @@ describe('<MenuDrawer>', () => {
 		expect(html).toContain('aria-labelledby="nav-products-0"');
 	});
 
-	it('renders the footer slot only when given', async () => {
+	it('renders the footer slot only when it has content', async () => {
 		expect(await render(MenuDrawer, {})).not.toContain('menu-drawer__foot');
+		expect(await render(MenuDrawer, {}, undefined, { footer: '  \n ' })).not.toContain('menu-drawer__foot');
 		const html = await render(MenuDrawer, {}, undefined, { footer: '<p>hi@example.com</p>' });
 		expect(html).toContain('<div class="menu-drawer__foot">');
 		expect(html).toContain('hi@example.com');

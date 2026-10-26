@@ -88,6 +88,23 @@ the header rather than its own trigger.
 | `{ …, description }` | a line under the label in a panel | — |
 | `{ …, icon: 'ti ti-forms' }` | an icon-font glyph before the label, hidden from screen readers | the same |
 | `{ …, attrs: { 'data-astro-prefetch': '' } }` | extra attributes on the link | the same |
+| `{ label, items, aside: 'latest' }` | `<MenuBar>`'s `latest` slot sits beside the panel's links | ignored — links only |
+
+A parent's own page heads its drawer group as "All {label}" — unless one
+of its children already links to the same place, so no page shows twice.
+
+Content that isn't a link — a featured release, a product card — goes in
+a named slot beside a dropdown's generated links:
+
+```astro
+<MenuBar items={[{ label: 'Products', href: '/products', items: products, aside: 'latest' }]}>
+	<a slot="latest" class="featured" href={latest.url}>
+		<img src={latest.cover} alt="" /> {latest.title}
+	</a>
+</MenuBar>
+```
+
+On a `<MenuDropdown items>` of your own, the slot is just `aside`.
 
 Two levels at most. Fly-out submenus inside a dropdown are hard to use by
 pointer or keyboard; a wide panel shows the same links better.
@@ -259,7 +276,8 @@ every time one opens or closes.
 | `strings` | — | i18n strings. |
 | `class` | — | Extra classes on the `<dialog>`. |
 
-Slots: default (after the nav), `footer` (pinned to the bottom).
+Slots: default (after the nav), `footer` (pinned to the bottom; left out
+when it renders nothing).
 
 ### `<MenuButton>`
 
@@ -339,6 +357,7 @@ Class hooks:
 .menu-dropdown__trigger  .menu-dropdown__link  .menu-dropdown__toggle
 .menu-dropdown__panel[data-open]  .menu-dropdown__list  .menu-dropdown__item
 .menu-dropdown__label  .menu-dropdown__desc
+.menu-dropdown__body  .menu-dropdown__main  .menu-dropdown__aside
 .menu-dropdown__columns  .menu-dropdown__column  .menu-dropdown__heading
 .menu-button  .menu-button__icon
 .menu-drawer[open]  [data-side]  .menu-drawer__panel  .menu-drawer__head

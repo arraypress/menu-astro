@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ariaCurrent, containsCurrent, format, isCurrentPath, makeId, normalizePath, resolveStrings } from '../src/utils';
+import { ariaCurrent, containsCurrent, format, isCurrentPath, makeId, normalizePath, resolveStrings, sameTarget } from '../src/utils';
 import { DEFAULT_STRINGS } from '../src/types';
 
 describe('normalizePath', () => {
@@ -55,6 +55,20 @@ describe('ariaCurrent', () => {
 	it('lets an item say for itself', () => {
 		expect(ariaCurrent({ href: '/a', current: true }, '/b')).toBe('page');
 		expect(ariaCurrent({ href: '/a', current: false }, '/a')).toBeUndefined();
+	});
+});
+
+describe('sameTarget', () => {
+	it('matches the same page and section, trailing slash or not', () => {
+		expect(sameTarget('/', '/')).toBe(true);
+		expect(sameTarget('/demos/', '/demos')).toBe(true);
+		expect(sameTarget('/#features', '/#features')).toBe(true);
+	});
+
+	it("tells sections and pages apart, and nothing matches nothing", () => {
+		expect(sameTarget('/#features', '/')).toBe(false);
+		expect(sameTarget('/demos', '/demo')).toBe(false);
+		expect(sameTarget(undefined, '/')).toBe(false);
 	});
 });
 
