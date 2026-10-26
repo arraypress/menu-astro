@@ -31,7 +31,7 @@
 import './styles/menu.css';
 import MenuGroup from './MenuGroup.astro';
 import MenuLink from './MenuLink.astro';
-import { containsCurrent, resolveStrings } from './utils';
+import { containsCurrent, format, resolveStrings } from './utils';
 import type { MenuDrawerProps } from './types';
 
 const {
@@ -78,7 +78,9 @@ const makeSlug = (label: string) => label.toLowerCase().replace(/[^\p{L}\p{N}]+/
 										<MenuGroup label={item.label} open={containsCurrent(item, currentPath)}>
 											{item.href && (
 												<li>
-													<MenuLink class="menu-drawer__link" item={item} currentPath={currentPath} externalNote={strings.external} />
+													<MenuLink class="menu-drawer__link" item={item} currentPath={currentPath} externalNote={strings.external}>
+														{format(strings.overview, item.label)}
+													</MenuLink>
 												</li>
 											)}
 											{item.items.map((child, index) =>

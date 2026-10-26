@@ -178,7 +178,7 @@ describe('<MenuDrawer>', () => {
 	it('turns dropdowns into groups, with the parent page first', async () => {
 		const html = await render(MenuDrawer, { items: nav });
 		expect(html).toMatch(/<details class="menu-group">\s*<summary class="menu-group__summary"><span>Plugins<\/span>/);
-		expect(html).toMatch(/<ul class="menu-group__items">\s*<li><a class="menu-drawer__link" href="\/plugins"/);
+		expect(html).toMatch(/<ul class="menu-group__items">\s*<li><a class="menu-drawer__link" href="\/plugins">All Plugins<\/a>/);
 	});
 
 	it('opens the group holding the current page', async () => {

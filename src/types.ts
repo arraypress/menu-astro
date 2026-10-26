@@ -75,6 +75,12 @@ export interface MenuStrings {
 	submenu?: string;
 	/** Read after an external link's text, which opens in a new tab. */
 	external?: string;
+	/**
+	 * The parent page's link at the top of its group in the drawer, where
+	 * the group's own heading already says `{label}` — `'All {label}'` reads
+	 * better than the name twice.
+	 */
+	overview?: string;
 }
 
 export const DEFAULT_STRINGS: Required<MenuStrings> = {
@@ -83,6 +89,7 @@ export const DEFAULT_STRINGS: Required<MenuStrings> = {
 	title:   'Menu',
 	submenu: '{label} pages',
 	external: '(opens in a new tab)',
+	overview: 'All {label}',
 };
 
 /** Props for `<MenuBar>`. */

@@ -87,7 +87,7 @@ test('dropdowns are groups, the parent page first', async ({ page }) => {
 	await hamburger(page).click();
 	const group = drawer(page).locator('details', { hasText: 'Plugins' }).first();
 	await group.locator('summary').click();
-	await expect(group.getByRole('link', { name: 'Plugins', exact: true })).toBeVisible();
+	await expect(group.getByRole('link', { name: 'All Plugins' })).toBeVisible();
 	await expect(group.getByRole('link', { name: /Forms/ })).toBeVisible();
 });
 

@@ -27,7 +27,8 @@ All notable changes to this project will be documented in this file.
   for an icon-font glyph, drawn hidden from screen readers — and `attrs`
   passed through to the link.
 - `menu.css` sits in the `menu-astro` cascade layer, so unlayered site CSS
-  always wins; a layered site (Tailwind v4) names the layer first.
+  always wins; a layered site places it between its resets and utilities —
+  for Tailwind v4, `@layer theme, base, menu-astro, components, utilities;`.
 - `aria-current` worked out from the page URL: `"page"` for this page,
   `"true"` for a section above it, never for a link with a `#`.
 - One runtime on the document, added once: menus rendered later or swapped

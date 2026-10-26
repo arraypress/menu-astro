@@ -82,7 +82,7 @@ the header rather than its own trigger.
 |---|---|---|
 | `{ label, href }` | a link | a link |
 | `{ label, items }` | a dropdown; the label is its button | a group |
-| `{ label, href, items }` | a dropdown; the label stays a link, a toggle beside it opens the panel | a group, with the parent page first |
+| `{ label, href, items }` | a dropdown; the label stays a link, a toggle beside it opens the panel | a group, with "All {label}" first |
 | `{ label, size: 'wide', items: [{ label, items }] }` | a mega panel: each child a headed column | a group, each column a labelled list |
 | `{ …, external: true }` | opens in a new tab, says so to screen readers | the same |
 | `{ …, description }` | a line under the label in a panel | — |
@@ -182,6 +182,12 @@ and iOS), Firefox 121+, Samsung Internet 25+.
 
 Dropdowns are positioned with plain CSS, not the Popover API or anchor
 positioning, so they need no fallback anywhere in that range.
+
+That floor comes from when each feature shipped, above. The test suite runs
+in current Chromium, Firefox and WebKit; the oldest versions in the range
+haven't been run, since their builds no longer start on a current macOS.
+Check those on a device lab — BrowserStack, or an iOS 17 simulator — before
+leaning on them.
 
 ## DOM contract
 
@@ -283,6 +289,7 @@ accessible name ("Menu" in "Open menu"), for WCAG 2.5.3.
 | `title` | `'Menu'` | the drawer's heading and name |
 | `submenu` | `'{label} pages'` | the toggle beside a parent that's a link |
 | `external` | `'(opens in a new tab)'` | read after an external link |
+| `overview` | `'All {label}'` | a parent page's link at the top of its drawer group |
 
 ## Styling
 
@@ -290,12 +297,14 @@ The components ship a plain look you can keep or replace. It all sits in
 the `menu-astro` cascade layer with every selector wrapped in `:where()`,
 so it weighs nothing — any rule you write for these classes wins.
 
-If your own CSS is layered — Tailwind v4 puts its utilities in
-`@layer utilities` — name `menu-astro` first, before anything else in your
-main stylesheet, so it sits below your layers instead of above them:
+Unlayered CSS beats any layer, so on a plain-CSS site there's nothing to
+do. If your own CSS is layered, place `menu-astro` yourself: above your
+resets — Tailwind's preflight, left above it, turns `<summary>` back into a
+list item and every `<svg>` into a block — and below everything you style
+with. For Tailwind v4, first thing in your main stylesheet:
 
 ```css
-@layer menu-astro;
+@layer theme, base, menu-astro, components, utilities;
 @import 'tailwindcss';
 ```
 

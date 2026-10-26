@@ -9,11 +9,12 @@
  * It all sits in the `menu-astro` cascade layer, and every selector is
  * wrapped in `:where()`, so it weighs nothing: any rule a theme writes for
  * these classes wins without `!important` or a longer selector. Unlayered
- * CSS beats any layer outright. A site whose own CSS is layered — Tailwind
- * v4 puts its utilities in `@layer utilities` — names `menu-astro` first, so
- * it sits below the rest:
+ * CSS beats any layer outright. A site whose own CSS is layered places
+ * `menu-astro` itself: above its resets — or they undo the structure here,
+ * as Tailwind's preflight does to `<summary>` and `<svg>` — and below
+ * everything it styles with. For Tailwind v4, before the import:
  *
- *   @layer menu-astro;
+ *   @layer theme, base, menu-astro, components, utilities;
  *   @import 'tailwindcss';
  *
  * Set the properties on `:root`, or on one menu to change just that one.
