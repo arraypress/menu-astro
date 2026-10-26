@@ -1,0 +1,37 @@
+---
+/**
+ * MenuLink.astro
+ * --------------
+ *
+ * One link from a `MenuItem`, as the bar, a panel and the drawer all draw
+ * it: `aria-current` worked out from the page URL, and an external link
+ * opened in a new tab with `rel="noopener"` and a screen-reader note saying
+ * so — a new tab otherwise arrives without warning (WCAG technique G201).
+ *
+ * An `icon` draws first, hidden from screen readers.
+ *
+ * Internal: the other components render it from `items`. Slot content, when
+ * given, replaces the label.
+ */
+import { ariaCurrent } from './utils';
+import type { MenuItem } from './types';
+
+interface Props {
+	item: MenuItem;
+	currentPath: string;
+	/** Read after an external link's text. */
+	externalNote: string;
+	class?: string;
+}
+
+const { item, currentPath, externalNote, class: className } = Astro.props;
+---
+
+<a
+	{...item.attrs}
+	class={className}
+	href={item.href}
+	aria-current={ariaCurrent(item, currentPath)}
+	target={item.external ? '_blank' : undefined}
+	rel={item.external ? 'noopener' : undefined}
+>{item.icon && <i class:list={['menu-icon', item.icon]} aria-hidden="true"></i>}<slot>{item.label}</slot>{item.external && <span class="menu-sr"> {externalNote}</span>}</a>

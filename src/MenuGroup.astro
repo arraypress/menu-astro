@@ -1,0 +1,38 @@
+---
+/**
+ * MenuGroup.astro
+ * ---------------
+ *
+ * A collapsible group of links in the drawer — what a dropdown becomes on a
+ * small screen, so its pages stay one tap away instead of missing from the
+ * phone menu altogether. A native `<details>`: browsers and screen readers
+ * already treat its `<summary>` as a button with an expanded state, and it
+ * opens and closes with no script.
+ *
+ * Fill it with `<li>`s; `<MenuDrawer items>` does this for you, and opens
+ * the group holding the current page.
+ *
+ * @example
+ *   ---
+ *   import { MenuGroup } from '@arraypress/menu-astro';
+ *   ---
+ *   <MenuGroup label="Plugins">
+ *     <li><a class="menu-drawer__link" href="/plugins/forms">Forms</a></li>
+ *     <li><a class="menu-drawer__link" href="/plugins/shop">Shop</a></li>
+ *   </MenuGroup>
+ */
+import './styles/menu.css';
+import type { MenuGroupProps } from './types';
+
+const { label, open = false, class: className } = Astro.props as MenuGroupProps;
+---
+
+<details class:list={['menu-group', className]} open={open}>
+	<summary class="menu-group__summary">
+		<span>{label}</span>
+		<svg class="menu-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg>
+	</summary>
+	<ul class="menu-group__items">
+		<slot />
+	</ul>
+</details>

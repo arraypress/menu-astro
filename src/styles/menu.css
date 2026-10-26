@@ -1,0 +1,501 @@
+/**
+ * menu.css
+ * --------
+ *
+ * The structure every menu needs to work — panels that hide and show, a
+ * drawer that sits at the edge, a page that stops scrolling behind it — and
+ * a plain look on top, all themeable through the custom properties below.
+ *
+ * It all sits in the `menu-astro` cascade layer, and every selector is
+ * wrapped in `:where()`, so it weighs nothing: any rule a theme writes for
+ * these classes wins without `!important` or a longer selector. Unlayered
+ * CSS beats any layer outright. A site whose own CSS is layered — Tailwind
+ * v4 puts its utilities in `@layer utilities` — names `menu-astro` first, so
+ * it sits below the rest:
+ *
+ *   @layer menu-astro;
+ *   @import 'tailwindcss';
+ *
+ * Set the properties on `:root`, or on one menu to change just that one.
+ *
+ * Baseline is every browser from 2024: Chrome / Edge 120, Safari 17,
+ * Firefox 121. Newer features are written to be skipped where missing — the
+ * drawer's slide-in needs `@starting-style` (Safari 17.5, Firefox 129), so
+ * before that it simply appears; `::backdrop` reading custom properties came
+ * in early 2024, so its colour has a fallback.
+ */
+
+@layer menu-astro {
+	:root {
+		--menu-surface: Canvas;
+		--menu-text: CanvasText;
+		--menu-muted: color-mix(in srgb, CanvasText 65%, transparent);
+		--menu-border: color-mix(in srgb, CanvasText 14%, transparent);
+		--menu-hover: color-mix(in srgb, CanvasText 6%, transparent);
+		--menu-current: currentColor;
+		--menu-backdrop: rgb(0 0 0 / 0.5);
+		--menu-radius: 0.75rem;
+		--menu-shadow: 0 18px 40px -12px rgb(0 0 0 / 0.35);
+		--menu-gap: 0.5rem;
+		--menu-z: 50;
+		--menu-panel-width: 15rem;
+		--menu-drawer-width: min(22rem, 88vw);
+		--menu-duration: 200ms;
+		--menu-ease: cubic-bezier(0.32, 0.72, 0, 1);
+		--menu-focus: 2px solid currentColor;
+	}
+
+	/* ── Shared ─────────────────────────────────────────────────────── */
+
+	/* A focus ring on everything a keyboard can reach — WCAG 2.4.7. A theme
+	 * that draws its own replaces this; one that removes outlines entirely
+	 * fails the criterion. */
+	:where(.menu-bar, .menu-dropdown__panel, .menu-drawer) :where(a, button, summary):focus-visible {
+		outline: var(--menu-focus);
+		outline-offset: 2px;
+	}
+
+	:where(.menu-bar__list, .menu-dropdown__list, .menu-drawer__list, .menu-group__items) {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	:where(.menu-dropdown__trigger, .menu-dropdown__toggle, .menu-drawer__close, .menu-button) {
+		font: inherit;
+		color: inherit;
+		background: none;
+		border: 0;
+		cursor: pointer;
+	}
+
+	:where(.menu-caret) {
+		inline-size: 0.75em;
+		block-size: 0.75em;
+		flex-shrink: 0;
+		transition: rotate var(--menu-duration) ease;
+	}
+
+	/* Text for screen readers only — "(opens in a new tab)" on external links. */
+	:where(.menu-sr) {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	/* ── Bar ───────────────────────────────────────────────────────── */
+
+	:where(.menu-bar__list) {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	:where(.menu-bar__link, .menu-dropdown__trigger, .menu-dropdown__link) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35em;
+		min-block-size: 2.5rem;
+		padding-inline: 0.6rem;
+		color: inherit;
+		text-decoration: none;
+		border-radius: 0.5rem;
+	}
+
+	:where(.menu-bar__link, .menu-dropdown__link)[aria-current],
+	:where(.menu-dropdown__trigger)[data-current] {
+		color: var(--menu-current);
+		text-decoration: underline;
+		text-underline-offset: 0.35em;
+	}
+
+	/* ── Dropdowns ─────────────────────────────────────────────────── */
+
+	:where(.menu-dropdown) {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	/* The toggle beside a parent that's also a link: no text, so it's sized to
+	 * stay an easy target — WCAG 2.5.8 asks for 24px, this gives 32. */
+	:where(.menu-dropdown__toggle) {
+		display: inline-grid;
+		place-items: center;
+		min-inline-size: 2rem;
+		min-block-size: 2rem;
+		border-radius: 0.5rem;
+	}
+
+	:where(.menu-dropdown)[data-open] :where(.menu-caret) {
+		rotate: 180deg;
+	}
+
+	:where(.menu-dropdown__panel) {
+		position: absolute;
+		inset-block-start: calc(100% + var(--menu-gap));
+		inset-inline-start: 0;
+		z-index: var(--menu-z);
+		min-inline-size: var(--menu-panel-width);
+		padding: 0.5rem;
+		background: var(--menu-surface);
+		color: var(--menu-text);
+		border: 1px solid var(--menu-border);
+		border-radius: var(--menu-radius);
+		box-shadow: var(--menu-shadow);
+		/* Closed: invisible AND out of the tab order and the accessibility tree —
+		 * `visibility: hidden` does all three, and unlike `display: none` it can
+		 * fade. */
+		visibility: hidden;
+		opacity: 0;
+		translate: 0 -0.25rem;
+		transition:
+			opacity var(--menu-duration) ease,
+			translate var(--menu-duration) ease,
+			visibility 0s linear var(--menu-duration);
+	}
+
+	:where(.menu-dropdown__panel)[data-open] {
+		visibility: visible;
+		opacity: 1;
+		translate: 0 0;
+		transition:
+			opacity var(--menu-duration) ease,
+			translate var(--menu-duration) ease,
+			visibility 0s;
+	}
+
+	/* The gap between trigger and panel belongs to the panel, so the pointer
+	 * never crosses dead space on the way down. */
+	:where(.menu-dropdown__panel)::before {
+		content: '';
+		position: absolute;
+		inset-inline: 0;
+		inset-block-end: 100%;
+		block-size: calc(var(--menu-gap) + 1px);
+	}
+
+	:where(.menu-dropdown)[data-align='center'] > :where(.menu-dropdown__panel) {
+		inset-inline-start: 50%;
+		translate: -50% -0.25rem;
+	}
+
+	:where(.menu-dropdown)[data-align='center'] > :where(.menu-dropdown__panel)[data-open] {
+		translate: -50% 0;
+	}
+
+	:where(.menu-dropdown)[data-align='end'] > :where(.menu-dropdown__panel) {
+		inset-inline: auto 0;
+	}
+
+	/* A wide panel spans its nearest positioned ancestor — a sticky or
+	 * `position: relative` header — rather than its own trigger. */
+	:where(.menu-dropdown)[data-size='wide'] {
+		position: static;
+	}
+
+	:where(.menu-dropdown)[data-size='wide'] > :where(.menu-dropdown__panel) {
+		inset-inline: 0;
+		translate: 0 -0.25rem;
+		padding: 1.25rem;
+	}
+
+	:where(.menu-dropdown)[data-size='wide'] > :where(.menu-dropdown__panel)[data-open] {
+		translate: 0 0;
+	}
+
+	:where(.menu-dropdown__list) {
+		display: grid;
+		gap: 0.125rem;
+	}
+
+	:where(.menu-dropdown__columns) {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+		gap: 1rem 1.5rem;
+	}
+
+	:where(.menu-dropdown__heading) {
+		margin: 0 0 0.5rem;
+		padding-inline: 0.75rem;
+		font-size: 0.8em;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--menu-muted);
+	}
+
+	:where(.menu-dropdown__item) {
+		display: grid;
+		gap: 0.15rem;
+		padding: 0.55rem 0.75rem;
+		color: inherit;
+		text-decoration: none;
+		border-radius: calc(var(--menu-radius) - 0.25rem);
+	}
+
+	:where(.menu-icon) {
+		flex-shrink: 0;
+		font-style: normal;
+		line-height: 1;
+		opacity: 0.75;
+	}
+
+	/* With an icon, the label and description share a second column, the icon
+	 * centred beside both. */
+	:where(.menu-dropdown__item):has(> .menu-icon) {
+		grid-template-columns: auto 1fr;
+		column-gap: 0.75rem;
+		align-items: center;
+	}
+
+	:where(.menu-dropdown__item) > :where(.menu-icon) {
+		grid-row: span 2;
+	}
+
+	:where(.menu-dropdown__item):has(> .menu-icon) > :where(:not(.menu-icon)) {
+		grid-column: 2;
+	}
+
+	:where(.menu-dropdown__item):hover {
+		background: var(--menu-hover);
+	}
+
+	:where(.menu-dropdown__item)[aria-current] {
+		color: var(--menu-current);
+		background: var(--menu-hover);
+	}
+
+	:where(.menu-dropdown__desc) {
+		font-size: 0.875em;
+		color: var(--menu-muted);
+	}
+
+	/* ── Hamburger ─────────────────────────────────────────────────── */
+
+	:where(.menu-button) {
+		display: inline-grid;
+		place-items: center;
+		min-inline-size: 2.75rem;
+		min-block-size: 2.75rem;
+		border-radius: 0.5rem;
+	}
+
+	:where(.menu-button__icon, .menu-drawer__close svg) {
+		inline-size: 1.4rem;
+		block-size: 1.4rem;
+	}
+
+	/* ── Drawer ────────────────────────────────────────────────────── */
+
+	:where(.menu-drawer) {
+		--menu-from: 100%;
+		position: fixed;
+		inset-block: 0;
+		inset-inline: auto 0;
+		margin: 0;
+		padding: 0;
+		inline-size: var(--menu-drawer-width);
+		max-inline-size: 100%;
+		block-size: 100vh;
+		block-size: 100dvh;
+		max-block-size: none;
+		background: var(--menu-surface);
+		color: var(--menu-text);
+		border: 0;
+		border-inline-start: 1px solid var(--menu-border);
+		box-shadow: var(--menu-shadow);
+		overscroll-behavior: contain;
+	}
+
+	:where(.menu-drawer)[data-side='start'] {
+		--menu-from: -100%;
+		inset-inline: 0 auto;
+		border-inline-start: 0;
+		border-inline-end: 1px solid var(--menu-border);
+	}
+
+	:where(.menu-drawer):dir(rtl) {
+		--menu-from: -100%;
+	}
+
+	:where(.menu-drawer)[data-side='start']:dir(rtl) {
+		--menu-from: 100%;
+	}
+
+	:where(.menu-drawer)::backdrop {
+		background: var(--menu-backdrop, rgb(0 0 0 / 0.5));
+	}
+
+	/* The slide. `display` and `overlay` transition only where the browser can
+	 * (`allow-discrete`); elsewhere the drawer opens and closes at once. */
+	@media (prefers-reduced-motion: no-preference) {
+		:where(.menu-drawer) {
+			translate: var(--menu-from) 0;
+			transition:
+				translate var(--menu-duration) var(--menu-ease),
+				overlay var(--menu-duration) allow-discrete,
+				display var(--menu-duration) allow-discrete;
+		}
+
+		:where(.menu-drawer)[open] {
+			translate: 0 0;
+		}
+
+		:where(.menu-drawer)::backdrop {
+			opacity: 0;
+			transition:
+				opacity var(--menu-duration) ease,
+				overlay var(--menu-duration) allow-discrete,
+				display var(--menu-duration) allow-discrete;
+		}
+
+		:where(.menu-drawer)[open]::backdrop {
+			opacity: 1;
+		}
+
+		@starting-style {
+			:where(.menu-drawer)[open] {
+				translate: var(--menu-from) 0;
+			}
+
+			:where(.menu-drawer)[open]::backdrop {
+				opacity: 0;
+			}
+		}
+	}
+
+	:where(.menu-drawer__panel) {
+		display: flex;
+		flex-direction: column;
+		block-size: 100%;
+	}
+
+	:where(.menu-drawer__head) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.75rem 0.75rem 0.75rem 1.25rem;
+		border-block-end: 1px solid var(--menu-border);
+	}
+
+	:where(.menu-drawer__title) {
+		margin: 0;
+		font-weight: 600;
+	}
+
+	:where(.menu-drawer__close) {
+		display: inline-grid;
+		place-items: center;
+		min-inline-size: 2.75rem;
+		min-block-size: 2.75rem;
+		border-radius: 0.5rem;
+	}
+
+	:where(.menu-drawer__body) {
+		flex: 1;
+		overflow-y: auto;
+		padding-block: 0.5rem;
+	}
+
+	:where(.menu-drawer__link, .menu-group__summary) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		min-block-size: 3rem;
+		padding-inline: 1.25rem;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	:where(.menu-drawer__link)[aria-current] {
+		color: var(--menu-current);
+		font-weight: 600;
+	}
+
+	:where(.menu-drawer__link):hover,
+	:where(.menu-group__summary):hover {
+		background: var(--menu-hover);
+	}
+
+	/* The page behind stops scrolling while a drawer is open; the runtime pads
+	 * out the vanished scrollbar so nothing shifts. */
+	:where(html):has(:where(.menu-drawer)[open]) {
+		overflow: hidden;
+		padding-inline-end: var(--menu-scrollbar, 0px);
+	}
+
+	/* ── Groups (in the drawer) ────────────────────────────────────── */
+
+	:where(.menu-group__summary) {
+		cursor: pointer;
+		list-style: none;
+	}
+
+	:where(.menu-group__summary)::-webkit-details-marker {
+		display: none;
+	}
+
+	:where(.menu-group)[open] > :where(.menu-group__summary) :where(.menu-caret) {
+		rotate: 180deg;
+	}
+
+	:where(.menu-group__items) :where(.menu-drawer__link) {
+		padding-inline-start: 2rem;
+		min-block-size: 2.75rem;
+	}
+
+	:where(.menu-group__heading) {
+		margin: 0.75rem 0 0.25rem;
+		padding-inline: 2rem 1.25rem;
+		font-size: 0.8em;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--menu-muted);
+	}
+
+	:where(.menu-group__items .menu-group__items) :where(.menu-drawer__link) {
+		padding-inline-start: 2rem;
+	}
+
+	:where(.menu-drawer__foot) {
+		padding: 1rem 1.25rem;
+		border-block-start: 1px solid var(--menu-border);
+	}
+
+	/* ── Preferences ───────────────────────────────────────────────── */
+
+	@media (prefers-reduced-motion: reduce) {
+		:where(.menu-dropdown__panel, .menu-caret) {
+			transition: none;
+			translate: none;
+		}
+
+		:where(.menu-dropdown)[data-align='center'] > :where(.menu-dropdown__panel) {
+			translate: -50% 0;
+		}
+	}
+
+	/* Windows High Contrast and other forced colours drop shadows and
+	 * backgrounds; a real border keeps panels and the drawer visible. */
+	@media (forced-colors: active) {
+		:where(.menu-dropdown__panel, .menu-drawer) {
+			border: 1px solid CanvasText;
+		}
+
+		:where(.menu-dropdown__item)[aria-current],
+		:where(.menu-drawer__link)[aria-current] {
+			text-decoration: underline;
+		}
+	}
+}

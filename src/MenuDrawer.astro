@@ -1,0 +1,127 @@
+---
+/**
+ * MenuDrawer.astro
+ * ----------------
+ *
+ * The menu on small screens: a panel that slides in from the edge, on a
+ * native `<dialog>` opened with `showModal()`. That gives the accessibility
+ * a hand-rolled drawer has to rebuild — focus moves in and stays in, the
+ * page behind is inert to keyboards, pointers and screen readers alike, it
+ * sits above everything, and Escape closes it — straight from the browser.
+ *
+ * The runtime adds the rest: opening from `<MenuButton>`, closing from the
+ * close button, the backdrop, any link inside, or the `closeAbove` query;
+ * locking the page's scroll without a layout shift; and returning focus to
+ * the button.
+ *
+ * Give it `items` — the same array as `<MenuBar items>` — and dropdowns
+ * become `<MenuGroup>`s, the one holding the current page open. Anything in
+ * the default slot follows the nav; the `footer` slot pins to the bottom.
+ *
+ * @example
+ *   ---
+ *   import { MenuButton, MenuDrawer } from '@arraypress/menu-astro';
+ *   ---
+ *   <MenuButton controls="site-menu" />
+ *   <MenuDrawer id="site-menu" items={nav} closeAbove="(min-width: 768px)">
+ *     <a href="/contact">Contact us</a>
+ *     <p slot="footer">hello@example.com</p>
+ *   </MenuDrawer>
+ */
+import './styles/menu.css';
+import MenuGroup from './MenuGroup.astro';
+import MenuLink from './MenuLink.astro';
+import { containsCurrent, resolveStrings } from './utils';
+import type { MenuDrawerProps } from './types';
+
+const {
+	id = 'menu-drawer',
+	items,
+	navLabel = 'Main',
+	currentPath = Astro.url.pathname,
+	side = 'end',
+	closeAbove,
+	strings: stringsProp,
+	class: className,
+} = Astro.props as MenuDrawerProps;
+
+const strings = resolveStrings(stringsProp);
+const titleId = `${id}-title`;
+/** A group's label as an id fragment, for its column headings: `${id}-${slug}-${index}`. */
+const makeSlug = (label: string) => label.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+---
+
+<dialog
+	id={id}
+	class:list={['menu-drawer', className]}
+	aria-labelledby={titleId}
+	data-menu-drawer
+	data-side={side}
+	data-close-above={closeAbove}
+>
+	<div class="menu-drawer__panel">
+		<div class="menu-drawer__head">
+			<h2 class="menu-drawer__title" id={titleId}>{strings.title}</h2>
+			<button type="button" class="menu-drawer__close" aria-label={strings.close} data-menu-close>
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12" /></svg>
+			</button>
+		</div>
+
+		<div class="menu-drawer__body">
+			{
+				items && (
+					<nav class="menu-drawer__nav" aria-label={navLabel}>
+						<ul class="menu-drawer__list">
+							{items.map((item) => (
+								<li>
+									{item.items?.length ? (
+										<MenuGroup label={item.label} open={containsCurrent(item, currentPath)}>
+											{item.href && (
+												<li>
+													<MenuLink class="menu-drawer__link" item={item} currentPath={currentPath} externalNote={strings.external} />
+												</li>
+											)}
+											{item.items.map((child, index) =>
+												child.items?.length ? (
+													<li>
+														<p class="menu-group__heading" id={`${id}-${makeSlug(item.label)}-${index}`}>{child.label}</p>
+														<ul class="menu-group__items" aria-labelledby={`${id}-${makeSlug(item.label)}-${index}`}>
+															{child.items.map((grandchild) => (
+																<li>
+																	<MenuLink class="menu-drawer__link" item={grandchild} currentPath={currentPath} externalNote={strings.external} />
+																</li>
+															))}
+														</ul>
+													</li>
+												) : (
+													<li>
+														<MenuLink class="menu-drawer__link" item={child} currentPath={currentPath} externalNote={strings.external} />
+													</li>
+												)
+											)}
+										</MenuGroup>
+									) : (
+										<MenuLink class="menu-drawer__link" item={item} currentPath={currentPath} externalNote={strings.external} />
+									)}
+								</li>
+							))}
+						</ul>
+					</nav>
+				)
+			}
+			<slot />
+		</div>
+
+		{
+			Astro.slots.has('footer') && (
+				<div class="menu-drawer__foot">
+					<slot name="footer" />
+				</div>
+			)
+		}
+	</div>
+</dialog>
+
+<script>
+	import './runtime/menu';
+</script>

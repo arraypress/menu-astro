@@ -1,0 +1,77 @@
+---
+/**
+ * MenuBar.astro
+ * -------------
+ *
+ * The site's main navigation as a row: a named `<nav>` landmark holding a
+ * list, with a dropdown wherever an item has children. Give it `items` and
+ * it draws everything; or fill the default slot with your own `<li>`s,
+ * `<MenuDropdown>`s inside them.
+ *
+ * The bar shows at every width; hide it where the drawer takes over with
+ * your own CSS (`@media (max-width: 767px) { .menu-bar { display: none } }`),
+ * and pass the drawer the same `items` so nothing is left out on a phone.
+ *
+ * @example
+ *   ---
+ *   import { MenuBar } from '@arraypress/menu-astro';
+ *   const nav = [
+ *     { label: 'Home', href: '/' },
+ *     { label: 'Plugins', href: '/plugins', items: [
+ *       { label: 'Forms', href: '/plugins/forms' },
+ *       { label: 'Shop', href: '/plugins/shop' },
+ *     ] },
+ *     { label: 'Blog', href: '/blog' },
+ *   ];
+ *   ---
+ *   <MenuBar items={nav} />
+ */
+import './styles/menu.css';
+import MenuDropdown from './MenuDropdown.astro';
+import MenuLink from './MenuLink.astro';
+import { resolveStrings } from './utils';
+import type { MenuBarProps } from './types';
+
+const {
+	label = 'Main',
+	items,
+	currentPath = Astro.url.pathname,
+	hover = true,
+	align = 'start',
+	strings: stringsProp,
+	class: className,
+} = Astro.props as MenuBarProps;
+
+const strings = resolveStrings(stringsProp);
+---
+
+<nav class:list={['menu-bar', className]} aria-label={label}>
+	<ul class="menu-bar__list">
+		{
+			items ? (
+				items.map((item) => (
+					<li class="menu-bar__item">
+						{item.items?.length ? (
+							<MenuDropdown
+								label={item.label}
+								href={item.href}
+								current={item.current}
+								attrs={item.attrs}
+								items={item.items}
+								size={item.size}
+								align={align}
+								currentPath={currentPath}
+								hover={hover}
+								strings={strings}
+							/>
+						) : (
+							<MenuLink class="menu-bar__link" item={item} currentPath={currentPath} externalNote={strings.external} />
+						)}
+					</li>
+				))
+			) : (
+				<slot />
+			)
+		}
+	</ul>
+</nav>

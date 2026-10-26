@@ -1,0 +1,43 @@
+---
+/**
+ * MenuButton.astro
+ * ----------------
+ *
+ * The hamburger that opens a `<MenuDrawer>`. Its name is `strings.open`
+ * ("Open menu"), and `aria-expanded` follows the drawer while `aria-controls`
+ * points at it. Show it only where the drawer replaces the bar.
+ *
+ * The default slot replaces the icon. If what you put there is visible text,
+ * keep it inside the accessible name — "Menu" inside "Open menu" — so a
+ * speech-input user can say what they see (WCAG 2.5.3).
+ *
+ * @example
+ *   ---
+ *   import { MenuButton } from '@arraypress/menu-astro';
+ *   ---
+ *   <MenuButton controls="site-menu" />
+ */
+import './styles/menu.css';
+import { resolveStrings } from './utils';
+import type { MenuButtonProps } from './types';
+
+const { controls = 'menu-drawer', strings: stringsProp, class: className } = Astro.props as MenuButtonProps;
+const strings = resolveStrings(stringsProp);
+---
+
+<button
+	type="button"
+	class:list={['menu-button', className]}
+	aria-label={strings.open}
+	aria-expanded="false"
+	aria-controls={controls}
+	data-menu-open={controls}
+>
+	<slot>
+		<svg class="menu-button__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+	</slot>
+</button>
+
+<script>
+	import './runtime/menu';
+</script>

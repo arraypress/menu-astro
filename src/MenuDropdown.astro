@@ -1,0 +1,170 @@
+---
+/**
+ * MenuDropdown.astro
+ * ------------------
+ *
+ * A dropdown in the nav bar — a short list under its trigger, or with
+ * `size="wide"` a mega panel across the header. Built on the WAI-ARIA
+ * disclosure pattern: a `<button>` with `aria-expanded` and `aria-controls`,
+ * and a panel of ordinary links that Tab moves through. Not `role="menu"`,
+ * which is for application menus and has screen readers expect arrow keys
+ * that a site's nav doesn't use.
+ *
+ * - Without `href`, the label is the button.
+ * - With `href`, the label stays a link to that page and a separate toggle
+ *   beside it opens the panel. A link that also opens a panel can't do both
+ *   on touch or by keyboard — the tap navigates — so they're kept apart.
+ * - Click, tap, Enter or Space opens it and pins it open. With a mouse,
+ *   hovering opens it too (`hover`, on by default) and leaving closes it.
+ *   Escape, Tab-ing out and pressing outside all close it.
+ *
+ * Fill the panel with `items` — each child a link, or with `size="wide"`,
+ * children holding `items` of their own become headed columns — or with
+ * your own markup in the default slot.
+ *
+ * @example
+ *   ---
+ *   import { MenuDropdown } from '@arraypress/menu-astro';
+ *   ---
+ *   <MenuDropdown label="Plugins" href="/plugins" items={[
+ *     { label: 'Forms', href: '/plugins/forms', description: 'Build any form' },
+ *     { label: 'Shop', href: '/plugins/shop' },
+ *   ]} />
+ *
+ *   <MenuDropdown label="Resources" size="wide">
+ *     <YourMegaPanel />
+ *   </MenuDropdown>
+ */
+import './styles/menu.css';
+import MenuLink from './MenuLink.astro';
+import { ariaCurrent, containsCurrent, format, makeId, resolveStrings } from './utils';
+import type { MenuDropdownProps } from './types';
+
+const {
+	label,
+	href,
+	current,
+	items,
+	currentPath = Astro.url.pathname,
+	id: idProp,
+	size = 'default',
+	align = 'start',
+	hover = true,
+	attrs,
+	strings: stringsProp,
+	class: className,
+} = Astro.props as MenuDropdownProps;
+
+const strings = resolveStrings(stringsProp);
+const id = idProp ?? makeId(label, Astro.request);
+const labelCurrent = ariaCurrent({ href, current }, currentPath);
+/* A label with no page of its own still shows that you're somewhere in it. */
+const sectionCurrent = !href && (items ?? []).some((item) => containsCurrent(item, currentPath));
+
+/* A wide panel lays children holding links out as headed columns; any plain
+ * links among them go together in a last column with no heading. */
+const columns = (items ?? []).filter((item) => item.items?.length);
+const loose = (items ?? []).filter((item) => !item.items?.length);
+const asColumns = columns.length > 0;
+
+const headingId = (index: number) => `${id}-col-${index}`;
+---
+
+<div
+	class:list={['menu-dropdown', className]}
+	data-menu-dropdown
+	data-hover={hover ? '' : undefined}
+	data-size={size}
+	data-align={size === 'wide' ? undefined : align}
+>
+	{
+		href ? (
+			<>
+				<a {...attrs} class="menu-dropdown__link" href={href} aria-current={labelCurrent}>{label}</a>
+				<button
+					type="button"
+					class="menu-dropdown__toggle"
+					aria-expanded="false"
+					aria-controls={id}
+					aria-label={format(strings.submenu, label)}
+					data-menu-toggle
+				>
+					<svg class="menu-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg>
+				</button>
+			</>
+		) : (
+			<button
+				type="button"
+				class="menu-dropdown__trigger"
+				aria-expanded="false"
+				aria-controls={id}
+				data-current={sectionCurrent ? '' : undefined}
+				data-menu-toggle
+			>
+				<span>{label}</span>
+				<svg class="menu-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg>
+			</button>
+		)
+	}
+
+	<div id={id} class="menu-dropdown__panel" data-menu-panel>
+		{
+			!items ? (
+				<slot />
+			) : asColumns ? (
+				<div class="menu-dropdown__columns">
+					{columns.map((column, index) => (
+						<div class="menu-dropdown__column">
+							{column.href ? (
+								<MenuLink class="menu-dropdown__heading" item={column} currentPath={currentPath} externalNote={strings.external}>
+									<span id={headingId(index)}>{column.label}</span>
+								</MenuLink>
+							) : (
+								<p class="menu-dropdown__heading" id={headingId(index)}>{column.label}</p>
+							)}
+							<ul class="menu-dropdown__list" aria-labelledby={headingId(index)}>
+								{column.items!.map((item) => (
+									<li>
+										<MenuLink class="menu-dropdown__item" item={item} currentPath={currentPath} externalNote={strings.external}>
+											<span class="menu-dropdown__label">{item.label}</span>
+											{item.description && <span class="menu-dropdown__desc">{item.description}</span>}
+										</MenuLink>
+									</li>
+								))}
+							</ul>
+						</div>
+					))}
+					{loose.length > 0 && (
+						<div class="menu-dropdown__column">
+							<ul class="menu-dropdown__list">
+								{loose.map((item) => (
+									<li>
+										<MenuLink class="menu-dropdown__item" item={item} currentPath={currentPath} externalNote={strings.external}>
+											<span class="menu-dropdown__label">{item.label}</span>
+											{item.description && <span class="menu-dropdown__desc">{item.description}</span>}
+										</MenuLink>
+									</li>
+								))}
+							</ul>
+						</div>
+					)}
+				</div>
+			) : (
+				<ul class="menu-dropdown__list">
+					{items.map((item) => (
+						<li>
+							<MenuLink class="menu-dropdown__item" item={item} currentPath={currentPath} externalNote={strings.external}>
+								<span class="menu-dropdown__label">{item.label}</span>
+								{item.description && <span class="menu-dropdown__desc">{item.description}</span>}
+							</MenuLink>
+						</li>
+					))}
+				</ul>
+			)
+		}
+	</div>
+</div>
+
+<script>
+	import './runtime/menu';
+</script>

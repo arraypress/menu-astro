@@ -1,0 +1,78 @@
+{
+  "name": "@arraypress/menu-astro",
+  "version": "1.0.0",
+  "description": "Accessible Astro site navigation — a nav bar with dropdowns and mega panels, and a mobile drawer on native <dialog>. Disclosure pattern, WCAG 2.2 AA, every browser from 2024.",
+  "type": "module",
+  "files": [
+    "src/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./MenuBar.astro": "./src/MenuBar.astro",
+    "./MenuDropdown.astro": "./src/MenuDropdown.astro",
+    "./MenuDrawer.astro": "./src/MenuDrawer.astro",
+    "./MenuButton.astro": "./src/MenuButton.astro",
+    "./MenuGroup.astro": "./src/MenuGroup.astro",
+    "./runtime": {
+      "types": "./src/runtime/menu.ts",
+      "default": "./src/runtime/menu.ts"
+    },
+    "./menu.css": "./src/styles/menu.css",
+    "./types": {
+      "types": "./src/types.ts",
+      "default": "./src/types.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "keywords": [
+    "astro",
+    "astro-component",
+    "navigation",
+    "menu",
+    "dropdown",
+    "mega-menu",
+    "drawer",
+    "hamburger",
+    "dialog",
+    "accessibility",
+    "a11y",
+    "withastro"
+  ],
+  "author": "ArrayPress",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arraypress/menu-astro.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "peerDependencies": {
+    "astro": "^6.0.0 || ^7.0.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.64.1",
+    "@types/jsdom": "^27.0.0",
+    "astro": "^7.0.3",
+    "jsdom": "^27.4.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  }
+}
